@@ -14,7 +14,7 @@ See the [install instructions](http://golang.org/doc/install.html).
 
 To install temper-cli, run:
 
-    go get github.com/taigrr/temper-cli
+    go install github.com/taigrr/temper-cli@latest
 
 
 On Linux you need to set up some udev rules to be able to access the device as
