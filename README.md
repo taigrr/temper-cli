@@ -1,8 +1,8 @@
 # temper
 
-[![Latest Release](https://img.shields.io/github/release/taigrr/temper.svg?style=for-the-badge)](https://github.com/taigrr/temper/releases)
+[![Latest Release](https://img.shields.io/github/release/taigrr/temper.svg?style=for-the-badge)](https://github.com/taigrr/temper-cli/releases)
 [![Software License](https://img.shields.io/badge/license-0BSD-blue.svg?style=for-the-badge)](/LICENSE)
-[![Go ReportCard](https://goreportcard.com/badge/github.com/taigrr/temper?style=for-the-badge)](https://goreportcard.com/report/taigrr/temper)
+[![Go ReportCard](https://goreportcard.com/badge/github.com/taigrr/temper-cli?style=for-the-badge)](https://goreportcard.com/report/taigrr/temper-cli)
 
 A simple golang command-line that takes a reading of a TEMPer USB and prints it
 to STDOUT. Uses the [temper](https://github.com/taigrr/temper) library.
