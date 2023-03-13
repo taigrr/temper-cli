@@ -29,6 +29,8 @@ SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1130", ATTRS{idProduct}=="660c", GROUP="p
 ```
 Note that there are many versions of the TEMPer USB and your
 `idVendor` and `idProduct` ATTRs may differ.
+This cli is tested with the model available [here](https://www.pcsensor.com/product-details?product_id=782&brd=1).
+This is not an endorsement of the product.
 
 Make sure your user is part of the `plugdev` group and reload the rules with
 `sudo udevadm control --reload-rules`.
