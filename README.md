@@ -9,12 +9,19 @@ to STDOUT. Uses the [temper](https://github.com/taigrr/temper) library.
 
 ## Installation
 
-Make sure you have a working Go environment (Go 1.12+ is required).
+Make sure you have a working Go environment (Go 1.26+ is required).
 See the [install instructions](http://golang.org/doc/install.html).
 
 To install temper-cli, run:
 
     go install github.com/taigrr/temper-cli@latest
+
+## Usage
+
+```
+temper-cli          # print temperature in Celsius
+temper-cli -f       # print temperature in Fahrenheit
+```
 
 
 On Linux you need to set up some udev rules to be able to access the device as
