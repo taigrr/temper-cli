@@ -19,8 +19,11 @@ To install temper-cli, run:
 ## Usage
 
 ```
-temper-cli          # print temperature in Celsius
-temper-cli -f       # print temperature in Fahrenheit
+temper-cli            # print temperature in Celsius
+temper-cli -f         # print temperature in Fahrenheit
+temper-cli -k         # print temperature in Kelvin
+temper-cli -j         # output all readings as JSON
+temper-cli -j -f      # JSON output (includes all units regardless of flag)
 ```
 
 
