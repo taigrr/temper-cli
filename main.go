@@ -13,6 +13,8 @@ import (
 var (
 	version    = "dev"
 	fahrenheit bool
+	kelvin     bool
+	jsonOutput bool
 )
 
 func main() {
@@ -28,6 +30,9 @@ func main() {
 	}
 
 	cmd.Flags().BoolVarP(&fahrenheit, "fahrenheit", "f", false, "output temperature in Fahrenheit")
+	cmd.Flags().BoolVarP(&kelvin, "kelvin", "k", false, "output temperature in Kelvin")
+	cmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "output readings as JSON")
+	cmd.MarkFlagsMutuallyExclusive("fahrenheit", "kelvin")
 
 	if err := fang.Execute(context.Background(), cmd); err != nil {
 		os.Exit(1)
@@ -50,17 +55,28 @@ func run() error {
 		}
 	}()
 
-	for _, t := range tempers {
-		c, err := t.ReadC()
-		if err != nil {
-			return fmt.Errorf("reading temperature from %s: %w", t, err)
-		}
+	unit := "celsius"
+	if fahrenheit {
+		unit = "fahrenheit"
+	} else if kelvin {
+		unit = "kelvin"
+	}
 
-		if fahrenheit {
-			fmt.Printf("%.2f\n", c*9.0/5.0+32.0)
-		} else {
-			fmt.Printf("%.2f\n", c)
+	var readings []Reading
+	for _, t := range tempers {
+		celsius, readErr := t.ReadC()
+		if readErr != nil {
+			return fmt.Errorf("reading temperature from %s: %w", t, readErr)
 		}
+		readings = append(readings, NewReading(t.String(), float64(celsius)))
+	}
+
+	if jsonOutput {
+		return FormatReadingsJSON(os.Stdout, readings)
+	}
+
+	for _, reading := range readings {
+		FormatReading(os.Stdout, reading, unit)
 	}
 
 	return nil
