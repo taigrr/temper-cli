@@ -26,6 +26,7 @@ temper-cli -j         # output all readings as JSON
 temper-cli -j -f      # JSON output (includes all units regardless of flag)
 ```
 
+When more than one sensor is connected, plain-text output is automatically labeled with the device name.
 
 On Linux you need to set up some udev rules to be able to access the device as
 a non-root/regular user.

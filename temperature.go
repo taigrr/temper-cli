@@ -36,14 +36,24 @@ func NewReading(device string, celsius float64) Reading {
 
 // FormatReading writes a single reading to the writer in the specified format.
 func FormatReading(w io.Writer, r Reading, unit string) {
+	fmt.Fprintln(w, FormatReadingString(r, unit))
+}
+
+// FormatReadingString returns a single formatted reading in the specified unit.
+func FormatReadingString(r Reading, unit string) string {
 	switch unit {
 	case "fahrenheit":
-		fmt.Fprintf(w, "%.2f\n", r.Fahrenheit)
+		return fmt.Sprintf("%.2f", r.Fahrenheit)
 	case "kelvin":
-		fmt.Fprintf(w, "%.2f\n", r.Kelvin)
+		return fmt.Sprintf("%.2f", r.Kelvin)
 	default:
-		fmt.Fprintf(w, "%.2f\n", r.Celsius)
+		return fmt.Sprintf("%.2f", r.Celsius)
 	}
+}
+
+// FormatLabeledReading writes a labeled reading to the writer in the specified format.
+func FormatLabeledReading(w io.Writer, r Reading, unit string) {
+	fmt.Fprintf(w, "%s: %s\n", r.Device, FormatReadingString(r, unit))
 }
 
 // FormatReadingsJSON writes all readings as a JSON array to the writer.

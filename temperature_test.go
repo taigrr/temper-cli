@@ -69,7 +69,7 @@ func TestNewReading(t *testing.T) {
 	}
 }
 
-func TestFormatReading(t *testing.T) {
+func TestFormatReadingString(t *testing.T) {
 	reading := NewReading("sensor-1", 25.0)
 
 	tests := []struct {
@@ -77,20 +77,39 @@ func TestFormatReading(t *testing.T) {
 		unit     string
 		expected string
 	}{
-		{"celsius", "celsius", "25.00\n"},
-		{"fahrenheit", "fahrenheit", "77.00\n"},
-		{"kelvin", "kelvin", "298.15\n"},
-		{"default is celsius", "", "25.00\n"},
+		{"celsius", "celsius", "25.00"},
+		{"fahrenheit", "fahrenheit", "77.00"},
+		{"kelvin", "kelvin", "298.15"},
+		{"default is celsius", "", "25.00"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var buf bytes.Buffer
-			FormatReading(&buf, reading, tt.unit)
-			if buf.String() != tt.expected {
-				t.Errorf("FormatReading(%q) = %q, want %q", tt.unit, buf.String(), tt.expected)
+			got := FormatReadingString(reading, tt.unit)
+			if got != tt.expected {
+				t.Errorf("FormatReadingString(%q) = %q, want %q", tt.unit, got, tt.expected)
 			}
 		})
+	}
+}
+
+func TestFormatReading(t *testing.T) {
+	reading := NewReading("sensor-1", 25.0)
+	var buf bytes.Buffer
+
+	FormatReading(&buf, reading, "fahrenheit")
+	if buf.String() != "77.00\n" {
+		t.Errorf("FormatReading() = %q, want %q", buf.String(), "77.00\n")
+	}
+}
+
+func TestFormatLabeledReading(t *testing.T) {
+	reading := NewReading("sensor-1", 25.0)
+	var buf bytes.Buffer
+
+	FormatLabeledReading(&buf, reading, "kelvin")
+	if buf.String() != "sensor-1: 298.15\n" {
+		t.Errorf("FormatLabeledReading() = %q, want %q", buf.String(), "sensor-1: 298.15\n")
 	}
 }
 

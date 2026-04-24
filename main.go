@@ -75,7 +75,12 @@ func run() error {
 		return FormatReadingsJSON(os.Stdout, readings)
 	}
 
+	showLabels := len(readings) > 1
 	for _, reading := range readings {
+		if showLabels {
+			FormatLabeledReading(os.Stdout, reading, unit)
+			continue
+		}
 		FormatReading(os.Stdout, reading, unit)
 	}
 
