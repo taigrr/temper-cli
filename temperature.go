@@ -35,8 +35,9 @@ func NewReading(device string, celsius float64) Reading {
 }
 
 // FormatReading writes a single reading to the writer in the specified format.
-func FormatReading(w io.Writer, r Reading, unit string) {
-	fmt.Fprintln(w, FormatReadingString(r, unit))
+func FormatReading(w io.Writer, r Reading, unit string) error {
+	_, err := fmt.Fprintln(w, FormatReadingString(r, unit))
+	return err
 }
 
 // FormatReadingString returns a single formatted reading in the specified unit.
@@ -52,8 +53,9 @@ func FormatReadingString(r Reading, unit string) string {
 }
 
 // FormatLabeledReading writes a labeled reading to the writer in the specified format.
-func FormatLabeledReading(w io.Writer, r Reading, unit string) {
-	fmt.Fprintf(w, "%s: %s\n", r.Device, FormatReadingString(r, unit))
+func FormatLabeledReading(w io.Writer, r Reading, unit string) error {
+	_, err := fmt.Fprintf(w, "%s: %s\n", r.Device, FormatReadingString(r, unit))
+	return err
 }
 
 // FormatReadingsJSON writes all readings as a JSON array to the writer.

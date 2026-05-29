@@ -51,7 +51,9 @@ func run() error {
 
 	defer func() {
 		for _, t := range tempers {
-			t.Close()
+			if closeErr := t.Close(); closeErr != nil {
+				fmt.Fprintf(os.Stderr, "closing %s: %v\n", t, closeErr)
+			}
 		}
 	}()
 
@@ -78,10 +80,14 @@ func run() error {
 	showLabels := len(readings) > 1
 	for _, reading := range readings {
 		if showLabels {
-			FormatLabeledReading(os.Stdout, reading, unit)
+			if err := FormatLabeledReading(os.Stdout, reading, unit); err != nil {
+				return fmt.Errorf("writing labeled reading for %s: %w", reading.Device, err)
+			}
 			continue
 		}
-		FormatReading(os.Stdout, reading, unit)
+		if err := FormatReading(os.Stdout, reading, unit); err != nil {
+			return fmt.Errorf("writing reading for %s: %w", reading.Device, err)
+		}
 	}
 
 	return nil
