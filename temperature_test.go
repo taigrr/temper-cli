@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"math"
 	"testing"
 )
@@ -97,7 +98,9 @@ func TestFormatReading(t *testing.T) {
 	reading := NewReading("sensor-1", 25.0)
 	var buf bytes.Buffer
 
-	FormatReading(&buf, reading, "fahrenheit")
+	if err := FormatReading(&buf, reading, "fahrenheit"); err != nil {
+		t.Fatalf("FormatReading error: %v", err)
+	}
 	if buf.String() != "77.00\n" {
 		t.Errorf("FormatReading() = %q, want %q", buf.String(), "77.00\n")
 	}
@@ -107,7 +110,9 @@ func TestFormatLabeledReading(t *testing.T) {
 	reading := NewReading("sensor-1", 25.0)
 	var buf bytes.Buffer
 
-	FormatLabeledReading(&buf, reading, "kelvin")
+	if err := FormatLabeledReading(&buf, reading, "kelvin"); err != nil {
+		t.Fatalf("FormatLabeledReading error: %v", err)
+	}
 	if buf.String() != "sensor-1: 298.15\n" {
 		t.Errorf("FormatLabeledReading() = %q, want %q", buf.String(), "sensor-1: 298.15\n")
 	}
@@ -139,4 +144,30 @@ func TestFormatReadingsJSON(t *testing.T) {
 	if decoded[1].Celsius != 30.0 {
 		t.Errorf("decoded[1].Celsius = %v, want %v", decoded[1].Celsius, 30.0)
 	}
+}
+
+func TestFormatReadingError(t *testing.T) {
+	reading := NewReading("sensor-1", 25.0)
+	writer := errorWriter{err: errors.New("write failed")}
+
+	if err := FormatReading(writer, reading, "celsius"); err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
+func TestFormatLabeledReadingError(t *testing.T) {
+	reading := NewReading("sensor-1", 25.0)
+	writer := errorWriter{err: errors.New("write failed")}
+
+	if err := FormatLabeledReading(writer, reading, "celsius"); err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
+type errorWriter struct {
+	err error
+}
+
+func (writer errorWriter) Write([]byte) (int, error) {
+	return 0, writer.err
 }
