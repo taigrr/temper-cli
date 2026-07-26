@@ -1,11 +1,11 @@
 module github.com/taigrr/temper-cli
 
-go 1.26
+go 1.26.5
 
 require (
 	github.com/charmbracelet/fang v0.4.4
 	github.com/spf13/cobra v1.10.2
-	github.com/taigrr/temper v1.3.0
+	github.com/taigrr/temper v1.5.0
 )
 
 require (
