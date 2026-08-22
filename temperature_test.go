@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -162,6 +164,54 @@ func TestFormatLabeledReadingError(t *testing.T) {
 	if err := FormatLabeledReading(writer, reading, "celsius"); err == nil {
 		t.Fatal("expected error, got nil")
 	}
+}
+
+func TestRootCommandRejectsArgs(t *testing.T) {
+	resetFlagsForTest(t)
+
+	cmd := newRootCommand()
+	cmd.SetArgs([]string{"sensor-1"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), `unknown command "sensor-1"`) {
+		t.Fatalf("error = %q, want unknown command", err)
+	}
+}
+
+func TestRootCommandRejectsConflictingUnits(t *testing.T) {
+	resetFlagsForTest(t)
+
+	cmd := newRootCommand()
+	cmd.SetArgs([]string{"--fahrenheit", "--kelvin"})
+	cmd.SetOut(io.Discard)
+	cmd.SetErr(io.Discard)
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), `if any flags in the group [fahrenheit kelvin] are set none of the others can be`) {
+		t.Fatalf("error = %q, want mutually exclusive flags error", err)
+	}
+}
+
+func resetFlagsForTest(t *testing.T) {
+	t.Helper()
+
+	fahrenheit = false
+	kelvin = false
+	jsonOutput = false
+
+	t.Cleanup(func() {
+		fahrenheit = false
+		kelvin = false
+		jsonOutput = false
+	})
 }
 
 type errorWriter struct {

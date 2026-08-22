@@ -18,11 +18,19 @@ var (
 )
 
 func main() {
+	cmd := newRootCommand()
+	if err := fang.Execute(context.Background(), cmd); err != nil {
+		os.Exit(1)
+	}
+}
+
+func newRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "temper-cli",
 		Short:   "Read temperature from TEMPer USB sensors",
 		Long:    "temper-cli discovers TEMPer USB HID temperature sensors and prints the current reading.",
 		Version: version,
+		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run()
 		},
@@ -34,9 +42,7 @@ func main() {
 	cmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "output readings as JSON")
 	cmd.MarkFlagsMutuallyExclusive("fahrenheit", "kelvin")
 
-	if err := fang.Execute(context.Background(), cmd); err != nil {
-		os.Exit(1)
-	}
+	return cmd
 }
 
 func run() error {
