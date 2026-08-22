@@ -19,6 +19,9 @@ var (
 )
 
 func init() {
+	if version != "dev" {
+		return
+	}
 	if info, ok := debug.ReadBuildInfo(); ok {
 		if v := info.Main.Version; v != "" && v != "(devel)" {
 			version = v
