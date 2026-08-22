@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/charmbracelet/fang"
 	"github.com/spf13/cobra"
@@ -11,11 +12,19 @@ import (
 )
 
 var (
-	version    = "dev"
+	version    = "dev" // overridable via -ldflags
 	fahrenheit bool
 	kelvin     bool
 	jsonOutput bool
 )
+
+func init() {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if v := info.Main.Version; v != "" && v != "(devel)" {
+			version = v
+		}
+	}
+}
 
 func main() {
 	cmd := newRootCommand()
