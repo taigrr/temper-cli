@@ -11,12 +11,13 @@ import (
 	"github.com/taigrr/temper"
 )
 
-var (
-	version    = "dev" // overridable via -ldflags
+var version = "dev" // overridable via -ldflags
+
+type commandOptions struct {
 	fahrenheit bool
 	kelvin     bool
 	jsonOutput bool
-)
+}
 
 func init() {
 	if version != "dev" {
@@ -37,6 +38,8 @@ func main() {
 }
 
 func newRootCommand() *cobra.Command {
+	opts := commandOptions{}
+
 	cmd := &cobra.Command{
 		Use:     "temper-cli",
 		Short:   "Read temperature from TEMPer USB sensors",
@@ -44,20 +47,20 @@ func newRootCommand() *cobra.Command {
 		Version: version,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run()
+			return run(opts)
 		},
 		SilenceUsage: true,
 	}
 
-	cmd.Flags().BoolVarP(&fahrenheit, "fahrenheit", "f", false, "output temperature in Fahrenheit")
-	cmd.Flags().BoolVarP(&kelvin, "kelvin", "k", false, "output temperature in Kelvin")
-	cmd.Flags().BoolVarP(&jsonOutput, "json", "j", false, "output readings as JSON")
+	cmd.Flags().BoolVarP(&opts.fahrenheit, "fahrenheit", "f", false, "output temperature in Fahrenheit")
+	cmd.Flags().BoolVarP(&opts.kelvin, "kelvin", "k", false, "output temperature in Kelvin")
+	cmd.Flags().BoolVarP(&opts.jsonOutput, "json", "j", false, "output readings as JSON")
 	cmd.MarkFlagsMutuallyExclusive("fahrenheit", "kelvin")
 
 	return cmd
 }
 
-func run() error {
+func run(opts commandOptions) error {
 	tempers, err := temper.FindTempers()
 	if err != nil {
 		return fmt.Errorf("finding temper devices: %w", err)
@@ -76,9 +79,9 @@ func run() error {
 	}()
 
 	unit := "celsius"
-	if fahrenheit {
+	if opts.fahrenheit {
 		unit = "fahrenheit"
-	} else if kelvin {
+	} else if opts.kelvin {
 		unit = "kelvin"
 	}
 
@@ -91,7 +94,7 @@ func run() error {
 		readings = append(readings, NewReading(t.String(), float64(celsius)))
 	}
 
-	if jsonOutput {
+	if opts.jsonOutput {
 		return FormatReadingsJSON(os.Stdout, readings)
 	}
 
