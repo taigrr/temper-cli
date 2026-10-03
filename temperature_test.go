@@ -167,8 +167,6 @@ func TestFormatLabeledReadingError(t *testing.T) {
 }
 
 func TestRootCommandRejectsArgs(t *testing.T) {
-	resetFlagsForTest(t)
-
 	cmd := newRootCommand()
 	cmd.SetArgs([]string{"sensor-1"})
 	cmd.SetOut(io.Discard)
@@ -184,8 +182,6 @@ func TestRootCommandRejectsArgs(t *testing.T) {
 }
 
 func TestRootCommandRejectsConflictingUnits(t *testing.T) {
-	resetFlagsForTest(t)
-
 	cmd := newRootCommand()
 	cmd.SetArgs([]string{"--fahrenheit", "--kelvin"})
 	cmd.SetOut(io.Discard)
@@ -198,20 +194,6 @@ func TestRootCommandRejectsConflictingUnits(t *testing.T) {
 	if !strings.Contains(err.Error(), `if any flags in the group [fahrenheit kelvin] are set none of the others can be`) {
 		t.Fatalf("error = %q, want mutually exclusive flags error", err)
 	}
-}
-
-func resetFlagsForTest(t *testing.T) {
-	t.Helper()
-
-	fahrenheit = false
-	kelvin = false
-	jsonOutput = false
-
-	t.Cleanup(func() {
-		fahrenheit = false
-		kelvin = false
-		jsonOutput = false
-	})
 }
 
 type errorWriter struct {
