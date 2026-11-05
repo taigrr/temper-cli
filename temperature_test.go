@@ -203,3 +203,40 @@ type errorWriter struct {
 func (writer errorWriter) Write([]byte) (int, error) {
 	return 0, writer.err
 }
+
+func TestFormatReadingsJSONWriterError(t *testing.T) {
+	writeErr := errors.New("output closed")
+	readings := []Reading{NewReading("sensor-1", 25)}
+
+	err := FormatReadingsJSON(errorWriter{err: writeErr}, readings)
+	if !errors.Is(err, writeErr) {
+		t.Fatalf("FormatReadingsJSON error = %v, want %v", err, writeErr)
+	}
+}
+
+func TestFormatReadingsJSONRejectsNonFiniteTemperatures(t *testing.T) {
+	tests := []struct {
+		name        string
+		temperature float64
+	}{
+		{name: "NaN", temperature: math.NaN()},
+		{name: "positive infinity", temperature: math.Inf(1)},
+		{name: "negative infinity", temperature: math.Inf(-1)},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var output bytes.Buffer
+			readings := []Reading{NewReading("sensor-1", test.temperature)}
+
+			err := FormatReadingsJSON(&output, readings)
+			var valueErr *json.UnsupportedValueError
+			if !errors.As(err, &valueErr) {
+				t.Fatalf("FormatReadingsJSON error = %v, want UnsupportedValueError", err)
+			}
+			if output.Len() != 0 {
+				t.Fatalf("invalid reading wrote partial JSON: %q", output.String())
+			}
+		})
+	}
+}
