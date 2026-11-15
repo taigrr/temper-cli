@@ -4,12 +4,17 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"runtime/debug"
+	"syscall"
+	"time"
 
 	"github.com/charmbracelet/fang"
 	"github.com/spf13/cobra"
 	"github.com/taigrr/temper"
 )
+
+const discoveryTimeout = 250 * time.Millisecond
 
 var version = "dev" // overridable via -ldflags
 
@@ -31,8 +36,10 @@ func init() {
 }
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 	cmd := newRootCommand()
-	if err := fang.Execute(context.Background(), cmd); err != nil {
+	if err := fang.Execute(ctx, cmd); err != nil {
 		os.Exit(1)
 	}
 }
@@ -47,7 +54,7 @@ func newRootCommand() *cobra.Command {
 		Version: version,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return run(opts)
+			return run(cmd.Context(), opts)
 		},
 		SilenceUsage: true,
 	}
@@ -60,14 +67,16 @@ func newRootCommand() *cobra.Command {
 	return cmd
 }
 
-func run(opts commandOptions) error {
-	tempers, err := temper.FindTempers()
-	if err != nil {
+func run(ctx context.Context, opts commandOptions) error {
+	if err := ctx.Err(); err != nil {
 		return fmt.Errorf("finding temper devices: %w", err)
 	}
-
-	if len(tempers) == 0 {
-		return fmt.Errorf("no temper devices found")
+	// Preserve the library's discovery timeout while honoring caller cancellation.
+	discoveryCtx, cancelDiscovery := context.WithTimeout(ctx, discoveryTimeout)
+	defer cancelDiscovery()
+	tempers, err := temper.FindTempersWithContext(discoveryCtx)
+	if err != nil {
+		return fmt.Errorf("finding temper devices: %w", err)
 	}
 
 	defer func() {
@@ -78,6 +87,13 @@ func run(opts commandOptions) error {
 		}
 	}()
 
+	if err := ctx.Err(); err != nil {
+		return fmt.Errorf("finding temper devices: %w", err)
+	}
+	if len(tempers) == 0 {
+		return fmt.Errorf("no temper devices found")
+	}
+
 	unit := "celsius"
 	if opts.fahrenheit {
 		unit = "fahrenheit"
@@ -87,7 +103,7 @@ func run(opts commandOptions) error {
 
 	var readings []Reading
 	for _, t := range tempers {
-		celsius, readErr := t.ReadC()
+		celsius, readErr := t.ReadCWithContext(ctx)
 		if readErr != nil {
 			return fmt.Errorf("reading temperature from %s: %w", t, readErr)
 		}

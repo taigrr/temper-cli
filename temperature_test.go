@@ -2,12 +2,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"math"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCelsiusToFahrenheit(t *testing.T) {
@@ -236,6 +238,36 @@ func TestFormatReadingsJSONRejectsNonFiniteTemperatures(t *testing.T) {
 			}
 			if output.Len() != 0 {
 				t.Fatalf("invalid reading wrote partial JSON: %q", output.String())
+			}
+		})
+	}
+}
+
+func TestRootCommandHonorsContext(t *testing.T) {
+	tests := []struct {
+		name    string
+		context func() (context.Context, context.CancelFunc)
+		want    error
+	}{
+		{"canceled", func() (context.Context, context.CancelFunc) {
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			return ctx, cancel
+		}, context.Canceled},
+		{"deadline", func() (context.Context, context.CancelFunc) {
+			return context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+		}, context.DeadlineExceeded},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := test.context()
+			defer cancel()
+			cmd := newRootCommand()
+			cmd.SetArgs(nil)
+			cmd.SetOut(io.Discard)
+			cmd.SetErr(io.Discard)
+			if err := cmd.ExecuteContext(ctx); !errors.Is(err, test.want) {
+				t.Fatalf("ExecuteContext error = %v, want %v", err, test.want)
 			}
 		})
 	}
